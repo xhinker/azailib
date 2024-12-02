@@ -1,4 +1,5 @@
 # azailib
+<a href="https://www.amazon.com/Using-Stable-Diffusion-Python-Generation/dp/1835086373" target="_blank"><img src="https://m.media-amazon.com/images/I/81qJBJlgGEL._SL1500_.jpg" alt="Using Stable Diffusion with Python" height="256px" align="right"></a>
 
 AI models like Stable Diffusion require image pre-process, generate canny image etc. this repo is for holding these common tool in one repo. 
 
