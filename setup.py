@@ -1,7 +1,7 @@
 from setuptools import setup,find_packages
 
 setup(
-    name               = 'azaitool'
+    name               = 'azailib'
     , version          = '1.241202.1'
     , license          = 'Apache License'
     , author           = "Andrew Zhu"
@@ -9,7 +9,7 @@ setup(
     , packages         = find_packages('src')
     , package_dir      = {'': 'src'}
     , url              = 'https://github.com/xhinker/azailib'
-    , keywords         = 'diffusers tools'
+    , keywords         = 'Andrew Zhu AI tool lib'
     , install_requires = [
         'optimum-quanto'
         , 'torch'

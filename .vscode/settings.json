@@ -1,3 +1,19 @@
 {
-    "files.autoSave": "afterDelay"
+    "window.title": "${rootName}",
+    "files.autoSave":"afterDelay",
+    "editor.tabCompletion": "on",
+    "terminal.integrated.fontFamily": "MesloLGS NF",
+    "editor.fontSize": 14,
+    "outline.icons": true,
+    "outline.problems.colors": true,
+    "outline.problems.enabled": true,
+    "outline.problems.badges": true,
+    "editor.copyWithSyntaxHighlighting": false,
+    "editor.acceptSuggestionOnEnter":"off",
+    "workbench.editor.enablePreview":true,
+    "editor.rulers": [20,40,60,80],
+    "editor.tabSize": 4,
+    "editor.minimap.enabled": false,
+    "python.languageServer": "Pylance",
+    "editor.smoothScrolling":true,
 }
