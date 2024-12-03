@@ -1,9 +1,57 @@
 '''
 Tool functions for image processing
 '''
+import os
 from PIL import Image
 from diffusers.utils import load_image
 
+def resize_img(img_path: str, upscale_times: float, divisible_by_16: bool = True):
+    """
+    Resizes an image by a specified upscale factor and ensures the output is in RGB mode.
+
+    Args:
+        img_path (str): Path to the input image.
+        upscale_times (float): Factor by which to upscale the image.
+            - Greater than 1 for upscaling.
+            - Between 0 and 1 for downscaling.
+        divisible_by_8 (bool, optional): If True, adjusts the output image's 
+            dimensions to be divisible by 8. Defaults to False.
+
+    Returns:
+        Image: The resized Pillow Image object in RGB mode.
+    """
+
+    # Check if file exists
+    if not os.path.isfile(img_path):
+        raise FileNotFoundError("The specified image file does not exist.")
+
+    try:
+        # Open the image file
+        with Image.open(img_path) as img:
+            # Ensure the image is in RGB mode (convert if necessary)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Get the original dimensions
+            orig_width, orig_height = img.size
+            
+            # Calculate new dimensions based on the upscale factor
+            new_width = int(orig_width * upscale_times)
+            new_height = int(orig_height * upscale_times)
+            
+            # If required, adjust dimensions to be divisible by 8
+            if divisible_by_16:
+                new_width = (new_width + 7) // 16 * 16  # Ceiling division to nearest multiple of 8
+                new_height = (new_height + 7) // 16 * 16
+            
+            # Resize the image
+            img_resized = img.resize((new_width, new_height))
+            
+            return img_resized
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 def generate_outpaint_image_mask(
     input_image: str
