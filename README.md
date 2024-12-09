@@ -12,8 +12,8 @@ pip install -U git+https://github.com/xhinker/azailib.git@main
 
 Then install required packages from repo source
 ```sh
-git+https://github.com/xhinker/sd_embed.git@main
-git+https://github.com/facebookresearch/sam2.git@main
+pip install -U git+https://github.com/xhinker/sd_embed.git@main
+pip install -U git+https://github.com/facebookresearch/sam2.git@main
 ``` 
 
 Note that the `sam2` installation require package building, will take some time, be a bit patient, read some news or drink a cup of coffee. 
