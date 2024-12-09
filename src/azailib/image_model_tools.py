@@ -121,7 +121,7 @@ class GroundingDinoPipeline:
 # Segment anything - SAM
 ################################################################################
 
-class SAMModelPiple:
+class SAMModelPipe:
     def __init__(
         self
         , checkpoint_path_or_id:str
