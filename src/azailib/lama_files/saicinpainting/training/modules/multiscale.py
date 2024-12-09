@@ -4,8 +4,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from saicinpainting.training.modules.base import get_conv_block_ctor, get_activation
-from saicinpainting.training.modules.pix2pixhd import ResnetBlock
+from azailib.lama_files.saicinpainting.training.modules.base import get_conv_block_ctor, get_activation
+from azailib.lama_files.saicinpainting.training.modules.pix2pixhd import ResnetBlock
 
 
 class ResNetHead(nn.Module):

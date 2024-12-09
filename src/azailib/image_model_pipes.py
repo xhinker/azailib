@@ -1,6 +1,7 @@
 '''
 This file holds functions for image process related models.
 '''
+import sys
 from typing import Union
 import os
 import PIL.Image
@@ -19,6 +20,10 @@ from .image_tools import (
     convert_cv2_to_pil_img
     , get_xyxy_boxes
 )
+
+# saicinpainting_path = "azailib/lama_files/saicinpainting"
+# saicinpainting_path = get_resource_path(relative_path=saicinpainting_path)
+# sys.path.append(saicinpainting_path)
 
 ################################################################################
 # GroundingDINO: https://github.com/IDEA-Research/GroundingDINO

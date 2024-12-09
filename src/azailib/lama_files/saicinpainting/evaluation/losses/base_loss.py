@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from joblib import Parallel, delayed
 from scipy import linalg
 
-from models.ade20k import SegmentationModule, NUM_CLASS, segm_options
+from azailib.lama_files.models.ade20k import SegmentationModule, NUM_CLASS, segm_options
 from .fid.inception import InceptionV3
 from .lpips import PerceptualLoss
 from .ssim import SSIM

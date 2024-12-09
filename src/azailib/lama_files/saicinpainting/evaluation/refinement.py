@@ -8,10 +8,10 @@ from torch.nn import functional as F
 import numpy as np
 import cv2
 
-from saicinpainting.evaluation.data import pad_tensor_to_modulo
-from saicinpainting.evaluation.utils import move_to_device
-from saicinpainting.training.modules.ffc import FFCResnetBlock
-from saicinpainting.training.modules.pix2pixhd import ResnetBlock
+from azailib.lama_files.saicinpainting.evaluation.data import pad_tensor_to_modulo
+from azailib.lama_files.saicinpainting.evaluation.utils import move_to_device
+from azailib.lama_files.saicinpainting.training.modules.ffc import FFCResnetBlock
+from azailib.lama_files.saicinpainting.training.modules.pix2pixhd import ResnetBlock
 
 from tqdm import tqdm
 

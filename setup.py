@@ -2,7 +2,7 @@ from setuptools import setup,find_packages
 
 setup(
     name               = 'azailib'
-    , version          = '1.241209.5'
+    , version          = '1.241209.6'
     , license          = 'Apache License'
     , author           = "Andrew Zhu"
     , author_email     = 'xhinker@hotmail.com'

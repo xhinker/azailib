@@ -1,7 +1,7 @@
 import logging
 
-from saicinpainting.training.visualizers.directory import DirectoryVisualizer
-from saicinpainting.training.visualizers.noop import NoopVisualizer
+from azailib.lama_files.saicinpainting.training.visualizers.directory import DirectoryVisualizer
+from azailib.lama_files.saicinpainting.training.visualizers.noop import NoopVisualizer
 
 
 def make_visualizer(kind, **kwargs):

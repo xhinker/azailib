@@ -7,8 +7,8 @@ from enum import Enum
 import cv2
 import numpy as np
 
-from saicinpainting.evaluation.masks.mask import SegmentationMask
-from saicinpainting.utils import LinearRamp
+from azailib.lama_files.saicinpainting.evaluation.masks.mask import SegmentationMask
+from azailib.lama_files.saicinpainting.utils import LinearRamp
 
 LOGGER = logging.getLogger(__name__)
 
