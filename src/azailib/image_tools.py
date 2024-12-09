@@ -2,8 +2,14 @@
 Tool functions for image processing
 '''
 import os
+import numpy as np
+from matplotlib import pyplot as plt
+import torch
+from torchvision.ops import box_convert
+import cv2
 from PIL import Image
 from diffusers.utils import load_image
+
 
 def resize_img(img_path: str, upscale_times: float, divisible_by_16: bool = True):
     """
@@ -107,3 +113,25 @@ def generate_outpaint_image_mask(
     mask_img.paste('black', (left_expand, top_expand, scaled_width + left_expand, scaled_height + top_expand))
     
     return expanded_img, mask_img
+
+def get_xyxy_boxes(cxcywh_boxes, image_source:Image):
+    '''
+    convert the float cxcywh boxes to int xyxy boxes
+    '''
+    h, w, _ = image_source.shape
+    xyxy_boxes_output = []
+    boxes = cxcywh_boxes * torch.Tensor([w,h,w,h])
+    xyxy_boxes = box_convert(
+        boxes       = boxes
+        , in_fmt    = "cxcywh"
+        , out_fmt   = "xyxy"
+    )
+    for xyxy_box in xyxy_boxes:
+        xyxy_box = [int(i) for i in xyxy_box]
+        xyxy_boxes_output.append(xyxy_box)
+    return xyxy_boxes_output
+
+def convert_cv2_to_pil_img(image_data):
+    img_rgb = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
+    pil_img = Image.fromarray(img_rgb)
+    return pil_img

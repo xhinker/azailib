@@ -16,4 +16,10 @@
     "editor.minimap.enabled": false,
     "python.languageServer": "Pylance",
     "editor.smoothScrolling":true,
+    "python.analysis.extraPaths": [
+        "D:\\az_git_folder\\azdsdr\\src\\azdsdr"
+        ,"/home/andrewzhu/storage_1t_1/github_repos/sam2"
+        ,"/home/andrewzhu/storage_1t_1/github_repos/Self-supervised-Text-Erasing"
+        ,"/home/andrewzhu/storage_1t_1/az_git_folder/azailib/src"
+    ],
 }

@@ -2,7 +2,7 @@ from setuptools import setup,find_packages
 
 setup(
     name               = 'azailib'
-    , version          = '1.241202.3'
+    , version          = '1.241208.1'
     , license          = 'Apache License'
     , author           = "Andrew Zhu"
     , author_email     = 'xhinker@hotmail.com'
@@ -25,6 +25,7 @@ setup(
         , 'ipykernel'
         , 'ipywidgets'
         , 'safetensors'
+        , 'groundingdino-py'
     ]
     , include_package_data=True
 )
