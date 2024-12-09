@@ -6,7 +6,7 @@ setup(
     , license          = 'Apache License'
     , author           = "Andrew Zhu"
     , author_email     = 'xhinker@hotmail.com'
-    , packages         = find_packages('src')
+    , packages         = find_packages(where='src')
     , package_dir      = {'': 'src'}
     , url              = 'https://github.com/xhinker/azailib'
     , keywords         = 'Andrew Zhu AI tool lib'

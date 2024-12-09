@@ -2,8 +2,8 @@ import logging
 
 import torch
 
-from azailib.lama_files.saicinpainting.evaluation.evaluator import InpaintingEvaluatorOnline, ssim_fid100_f1, lpips_fid100_f1
-from azailib.lama_files.saicinpainting.evaluation.losses.base_loss import SSIMScore, LPIPSScore, FIDScore
+from saicinpainting.evaluation.evaluator import InpaintingEvaluatorOnline, ssim_fid100_f1, lpips_fid100_f1
+from saicinpainting.evaluation.losses.base_loss import SSIMScore, LPIPSScore, FIDScore
 
 
 def make_evaluator(kind='default', ssim=True, lpips=True, fid=True, integral_kind=None, **kwargs):
