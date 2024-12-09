@@ -324,8 +324,8 @@ class SAMModelPipe:
 # Github: https://github.com/advimman/lama
 # This model can do object removal externally efficient
 ################################################################################
-from lama_files.saicinpainting.evaluation.utils import move_to_device
-from lama_files.saicinpainting.training.trainers import load_checkpoint
+from .lama_files.saicinpainting.evaluation.utils import move_to_device
+from .lama_files.saicinpainting.training.trainers import load_checkpoint
 
 class LAMAInpaintPipe:
     def __init__(
