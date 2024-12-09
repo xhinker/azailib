@@ -1,5 +1,6 @@
 '''
-Tool functions for image processing
+Tool functions for image processing. Functions list here should never call any functions
+from Models to avoid loop calling.
 '''
 import os
 import numpy as np
@@ -132,6 +133,9 @@ def get_xyxy_boxes(cxcywh_boxes, image_source:Image):
     return xyxy_boxes_output
 
 def convert_cv2_to_pil_img(image_data):
+    '''
+    The input image should be in BGR format
+    '''
     img_rgb = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(img_rgb)
     return pil_img

@@ -5,23 +5,15 @@ from typing import Union
 import os
 import PIL.Image
 import torch
+import torch.nn.functional as F
 from diffusers.utils import load_image
 import numpy as np
 from .lib_utility import get_resource_path
 from PIL import Image
 from matplotlib import pyplot as plt
 import cv2
-
-# install sam2 from original github repo
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-# `pip install groundingdino-py`
-from groundingdino.util import box_ops
-from groundingdino.util.inference import load_model as dino_load_model
-from groundingdino.util.inference import predict as dino_predict
-from groundingdino.util.inference import annotate as dino_annotate
-from groundingdino.util.inference import load_image as dino_load_image
+from omegaconf import OmegaConf
+import yaml
 
 from .image_tools import (
     convert_cv2_to_pil_img
@@ -29,8 +21,15 @@ from .image_tools import (
 )
 
 ################################################################################
-# GroundingDINO
+# GroundingDINO: https://github.com/IDEA-Research/GroundingDINO
+# this model can do language to object detection, output xyxy boxes 
 ################################################################################
+# `pip install groundingdino-py`
+from groundingdino.util import box_ops
+from groundingdino.util.inference import load_model as dino_load_model
+from groundingdino.util.inference import predict as dino_predict
+from groundingdino.util.inference import annotate as dino_annotate
+from groundingdino.util.inference import load_image as dino_load_image
 class GroundingDinoPipeline:
     """Pipeline for Grounding DINO model predictions."""
 
@@ -119,7 +118,13 @@ class GroundingDinoPipeline:
 
 ################################################################################
 # Segment anything - SAM
+# Sam2 paper: https://arxiv.org/abs/2408.00714
+# Github URL: https://github.com/facebookresearch/sam2
+# This model can generate precise mask for the target object
 ################################################################################
+# install sam2 from original github repo
+from sam2.build_sam import build_sam2
+from sam2.sam2_image_predictor import SAM2ImagePredictor
 
 class SAMModelPipe:
     def __init__(
@@ -306,10 +311,140 @@ class SAMModelPipe:
                 point_coords     = None,
                 point_labels     = None,
                 box              = input_box[None, :],
-                multimask_output =False,
+                multimask_output = False,
             )
             if show_middle_masks:
                 self.show_masks(input_img, masks, scores, box_coords=input_box)
             masks_list.append(masks[0])
         combined_mask = self.get_combine_masks(masks_list, margin = dilate_margin)
         return combined_mask
+    
+################################################################################
+# LAMA 
+# Github: https://github.com/advimman/lama
+# This model can do object removal externally efficient
+################################################################################
+from .lama_files.saicinpainting.evaluation.utils import move_to_device
+from .lama_files.saicinpainting.training.trainers import load_checkpoint
+
+class LAMAInpaintPipe:
+    def __init__(
+        self
+        , checkpoint_path
+        , gpu_id:int = 0
+    ):
+        os.environ['OMP_NUM_THREADS']               = '1'
+        os.environ['OPENBLAS_NUM_THREADS']          = '1'
+        os.environ['MKL_NUM_THREADS']               = '1'
+        os.environ['VECLIB_MAXIMUM_THREADS']        = '1'
+        os.environ['NUMEXPR_NUM_THREADS']           = '1'
+        
+        self.device              = f"cuda:{gpu_id}"
+        
+        # read and set train config
+        train_config_path   = "azailib/lama_files/configs/train_config.yaml"
+        train_config_path   = get_resource_path(relative_path=train_config_path)
+        with open(train_config_path, 'r') as f:
+            self.train_config = OmegaConf.create(yaml.safe_load(f))
+        self.train_config.training_model.predict_only    = True
+        self.train_config.visualizer.kind                = 'noop'
+        
+        predict_config_path = "azailib/lama_files/configs/predict_config.yaml"
+        predict_config_path = get_resource_path(relative_path=predict_config_path)
+        with open(predict_config_path, 'r') as f:
+            self.predict_config = OmegaConf.create(yaml.safe_load(f))
+
+        # read and set predict config
+        # out_ext = predict_config.get('out_ext', '.png')
+        
+        # load model
+        self.model = load_checkpoint(
+            self.train_config
+            , checkpoint_path
+            , strict        = False
+            , map_location  = 'cpu'
+        )
+        self.model.freeze()
+        self.model.to(self.device)
+        print(f'LAMA model loaded to {self.device}')
+
+    def ceil_modulo(self,x, mod):
+        if x % mod == 0:
+            return x
+        return (x // mod + 1) * mod
+    
+    def pad_tensor_to_modulo(self,img, mod):
+        batch_size, channels, height, width = img.shape
+        out_height = self.ceil_modulo(height, mod)
+        out_width = self.ceil_modulo(width, mod)
+        return F.pad(img, pad=(0, out_width - width, 0, out_height - height), mode='reflect')
+    
+    def load_image_mask_from_uri(
+        self
+        , image_uri:str
+        , mask_uri:str
+    ):
+        """
+        Load image and mask from URIs and create a batch dictionary.
+        
+        Args:
+        - image_uri (str): URI to the image file.
+        - mask_uri (str): URI to the mask file.
+        
+        Returns:
+        - batch (dict): Dictionary containing 'image', 'mask', and 'unpad_to_size' (which will be None since no resizing is done).
+        """
+
+        # Load image and mask
+        image = Image.open(image_uri).convert('RGB')  # Assuming RGB for images
+        mask = Image.open(mask_uri).convert('L')      # Grayscale for masks
+        
+        # Check if image and mask are the same size
+        assert image.size == mask.size, "Image and mask must be the same size"
+        
+        # Convert to tensors
+        image_tensor = torch.from_numpy(np.array(image)).permute(2, 0, 1)/255  # RGB to (C, H, W)
+        mask_tensor = torch.from_numpy(np.array(mask))[None, :]/255  # Grayscale to (1, H, W)
+        
+        # Since target_size matches the image/mask size, no resizing is needed
+        unpad_to_size = [torch.tensor(image.size[1]),torch.tensor(image.size[0])]
+        
+        # Construct batch dictionary
+        batch = {
+            'image': image_tensor.unsqueeze(0),  # Add batch dimension
+            'mask': mask_tensor.unsqueeze(0),    # Add batch dimension
+        }
+        
+        batch['image'] = self.pad_tensor_to_modulo(batch['image'], 8)
+        batch['mask'] = self.pad_tensor_to_modulo(batch['mask'], 8)
+        
+        if unpad_to_size:
+            batch['unpad_to_size'] = unpad_to_size
+        
+        return batch
+
+    def predict(
+        self
+        , input_img_path:str
+        , input_mask_path:str
+    ):
+        batch = self.load_image_mask_from_uri(
+            image_uri   = input_img_path
+            , mask_uri  = input_mask_path
+        )
+        
+        with torch.no_grad():
+            batch           = move_to_device(batch, self.device)
+            # ensure all mask are binary number
+            batch['mask']   = (batch['mask'] > 0) * 1
+            batch           = self.model(batch)
+        
+        cur_res         = batch[self.predict_config.out_key][0].permute(1, 2, 0).detach().cpu().numpy()
+        unpad_to_size   = batch.get('unpad_to_size', None)
+        if unpad_to_size is not None:
+            orig_height, orig_width = unpad_to_size
+            cur_res                 = cur_res[:orig_height, :orig_width]
+            
+        cur_res = np.clip(cur_res * 255, 0, 255).astype('uint8')
+        cur_res = cv2.cvtColor(cur_res, cv2.COLOR_RGB2BGR)
+        return convert_cv2_to_pil_img(cur_res)
