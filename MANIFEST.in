@@ -1,0 +1,3 @@
+include azailib/groundingdino_files/*
+include azailib/lama_files/*
+include azailib/sam2_files/*
