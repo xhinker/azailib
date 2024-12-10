@@ -12,7 +12,7 @@ from PIL import Image
 from diffusers.utils import load_image
 
 
-def resize_img(img_path: str, upscale_times: float, divisible_by_16: bool = True):
+def resize_img(img_path: str, upscale_times: float, divisible_by: int = 1):
     """
     Resizes an image by a specified upscale factor and ensures the output is in RGB mode.
 
@@ -46,10 +46,10 @@ def resize_img(img_path: str, upscale_times: float, divisible_by_16: bool = True
             new_width = int(orig_width * upscale_times)
             new_height = int(orig_height * upscale_times)
             
-            # If required, adjust dimensions to be divisible by 8
-            if divisible_by_16:
-                new_width = (new_width + 7) // 16 * 16  # Ceiling division to nearest multiple of 8
-                new_height = (new_height + 7) // 16 * 16
+            # If required, adjust dimensions to be divisible by the input divisible_by
+            if divisible_by != 1:
+                new_width = (new_width + divisible_by -1) // divisible_by * divisible_by  # Ceiling division to nearest multiple of 8
+                new_height = (new_height + divisible_by-1) // divisible_by * divisible_by
             
             # Resize the image
             img_resized = img.resize((new_width, new_height))
