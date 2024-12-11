@@ -26,6 +26,7 @@ setup(
         , 'ipywidgets'
         , 'safetensors'
         , 'groundingdino-py'
+        , 'rembg'
     ]
     , include_package_data=True
 )

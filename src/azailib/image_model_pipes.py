@@ -19,6 +19,8 @@ import yaml
 from .image_tools import (
     convert_cv2_to_pil_img
     , get_xyxy_boxes
+    , resize_img
+    , scale_img
 )
 
 # saicinpainting_path = "azailib/lama_files/saicinpainting"
@@ -47,7 +49,7 @@ class GroundingDinoPipeline:
         Initializes the GroundingDinoPipeline.
 
         Args:
-            model_path: Path to the DINO model.
+            checkpoint_path_or_id: Path to the DINO model.
             gpu_id: ID of the GPU to use (default: 0).
 
         Raises:
@@ -453,3 +455,37 @@ class LAMAInpaintPipe:
         cur_res = np.clip(cur_res * 255, 0, 255).astype('uint8')
         cur_res = cv2.cvtColor(cur_res, cv2.COLOR_RGB2BGR)
         return convert_cv2_to_pil_img(cur_res)
+
+class RembgPipe:
+    '''
+    Remove background using Rembg
+    '''
+    def __init__(self):
+        from rembg import remove
+        self.bg_remover = remove
+    
+    def remove_background(
+        self
+        , image_or_path: Union[Image.Image, str]
+        , bg_rgb:tuple = (255,255,255)
+        , width:int = None
+        , height:int = None
+    ):
+        if isinstance(image_or_path, Image.Image):
+            input_img = image_or_path
+        elif isinstance(image_or_path, str):
+            input_img = load_image(image_or_path)
+        
+        bg_img              = Image.new("RGBA", input_img.size, bg_rgb)
+        image_wo_bg         = self.bg_remover(input_img)
+        image_wo_bg_RGBA    = Image.alpha_composite(bg_img, image_wo_bg)
+        image_wo_bg_RGB     = image_wo_bg_RGBA.convert("RGB")
+        
+        if width and height:
+            image_wo_bg_RGB = resize_img(
+                image_or_path = image_wo_bg_RGB
+                , width=width
+                , height=height
+            )
+        
+        return image_wo_bg_RGB
