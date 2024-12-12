@@ -5,18 +5,24 @@ AI models like Stable Diffusion require image pre-process, generate canny image 
 
 ## Install 
 
-Install `azailib`
+Install `azailib`:
 ```sh
 pip install -U git+https://github.com/xhinker/azailib.git@main
 ```
 
-Then install required packages from repo source
+Then install required packages from repo source:
 ```sh
 pip install -U git+https://github.com/xhinker/sd_embed.git@main
 pip install -U git+https://github.com/facebookresearch/sam2.git@main
 ``` 
 
 Note that the `sam2` installation require package building, will take some time, be a bit patient, read some news or drink a cup of coffee. 
+
+If see any message says `onnxruntime-gpu` is needed, install it using this command:
+
+```sh
+pip install onnxruntime==1.16.2 --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-11/pypi/simple/
+```
 
 ## Use it
 

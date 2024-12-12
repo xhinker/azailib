@@ -4,7 +4,6 @@ This file holds functions for image process related models.
 import sys
 from typing import Union
 import os
-import PIL.Image
 import torch
 import torch.nn.functional as F
 from diffusers.utils import load_image
@@ -489,3 +488,61 @@ class RembgPipe:
             )
         
         return image_wo_bg_RGB
+
+
+################################################################################
+# This pipe include processing features port from OOTDiffusion
+# Original github repo: https://github.com/levihsu/OOTDiffusion
+# Download model from: https://huggingface.co/levihsu/OOTDiffusion
+################################################################################
+from azailib.ootd_files.openpose.run_openpose import OpenPose
+from azailib.ootd_files.humanparsing.run_parsing import Parsing
+from azailib.ootd_files.utils_ootd import get_mask_location
+class OOTDPipe:
+    def __init__(
+        self
+        , body_pose_checkpoint_path:str
+        , humanparsing_atr_checkpoint_path:str
+        , humanparsing_lip_checkpoint_path:str
+        , gpu_id:int = 0
+    ):
+        self.openpose_model  = OpenPose(
+            body_pose_checkpoint_path   = body_pose_checkpoint_path
+            , gpu_id                    = gpu_id
+        )
+        self.parsing_model   = Parsing(
+            humanparsing_atr_checkpoint_path    = humanparsing_atr_checkpoint_path
+            , humanparsing_lip_checkpoint_path  = humanparsing_lip_checkpoint_path
+            , gpu_id                            = gpu_id
+        )
+        
+    
+    def get_mask(
+        self
+        , image_or_path: Union[Image.Image, str]
+        , body_position:str = "upper_body" # 'upper_body', 'lower_body', 'dresses'
+        , dilate_margin: int = 5
+    ):
+        if isinstance(image_or_path, Image.Image):
+            input_image = image_or_path
+        elif isinstance(image_or_path, str):
+            input_image = load_image(image_or_path).convert("RGB")
+            
+        # get keypoints, the model function will convert the image size to (384, 512)
+        keypoints, _ = self.openpose_model(input_image)
+        
+        # get model_parse
+        model_parse, face_mask = self.parsing_model(
+            # model_img.resize((384, 512))
+            input_image
+        )
+        
+        model_type = "hd"
+        mask, mask_gray = get_mask_location(
+            model_type
+            , body_position
+            , model_parse
+            , keypoints
+            , dilate_margin = dilate_margin
+        )
+        return mask
