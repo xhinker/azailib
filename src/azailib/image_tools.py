@@ -343,3 +343,24 @@ def extract_objects_using_xyxy_boxes(img, boxes):
         current_x += obj.width + obj_gap
 
     return result_img
+
+def get_right_half_image(pil_image):
+    """
+    Returns the right half of a given PIL Image.
+    
+    Parameters:
+    - pil_image (PIL Image): The input image from which to extract the right half.
+    
+    Returns:
+    - PIL Image: The right half of the input image.
+    """
+    # Get the width and height of the input image
+    width, height = pil_image.size
+    
+    # Calculate the midpoint for splitting
+    mid_point = width // 2
+    
+    # Extract the right half; from the mid point to the end of the width
+    right_half = pil_image.crop((mid_point, 0, width, height))
+    
+    return right_half

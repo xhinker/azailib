@@ -22,7 +22,7 @@ label_map = {
     "left_arm": 14,
     "right_arm": 15,
     "bag": 16,
-    "scarf": 17,
+    "scarf": 17
 }
 
 def extend_arm_mask(wrist, elbow, scale):
@@ -59,6 +59,7 @@ def get_mask_location(
     , model_parse: Image.Image
     , keypoint: dict
     , dilate_margin:int = 5
+    , section_ids:list = None
 ):
     original_width, original_height = model_parse.size
     
@@ -77,10 +78,9 @@ def get_mask_location(
     parse_head = (parse_array == 1).astype(np.float32) + \
                  (parse_array == 3).astype(np.float32) + \
                  (parse_array == 11).astype(np.float32)
-
-    parser_mask_fixed = (parse_array == label_map["left_shoe"]).astype(np.float32) + \
-                        (parse_array == label_map["right_shoe"]).astype(np.float32) + \
-                        (parse_array == label_map["hat"]).astype(np.float32) + \
+                 
+    # remove shoes from the fix
+    parser_mask_fixed = (parse_array == label_map["hat"]).astype(np.float32) + \
                         (parse_array == label_map["sunglasses"]).astype(np.float32) + \
                         (parse_array == label_map["bag"]).astype(np.float32)
 
@@ -91,29 +91,65 @@ def get_mask_location(
     arms = arms_left + arms_right
 
     if category == 'dresses':
-        parse_mask = (parse_array == 7).astype(np.float32) + \
-                     (parse_array == 4).astype(np.float32) + \
-                     (parse_array == 5).astype(np.float32) + \
-                     (parse_array == 6).astype(np.float32)
+        parse_mask = (parse_array == label_map["dress"]).astype(np.float32) + \
+                     (parse_array == label_map["upper_clothes"]).astype(np.float32) + \
+                     (parse_array == label_map["skirt"]).astype(np.float32) + \
+                     (parse_array == label_map["pants"]).astype(np.float32)
 
         parser_mask_changeable += np.logical_and(parse_array, np.logical_not(parser_mask_fixed))
     elif category == 'upper_body':
-        parse_mask = (parse_array == 4).astype(np.float32) + (parse_array == 7).astype(np.float32)
+        parse_mask = (parse_array == label_map["upper_clothes"]).astype(np.float32) + \
+                     (parse_array == label_map["dress"]).astype(np.float32)
+                     
         parser_mask_fixed_lower_cloth = (parse_array == label_map["skirt"]).astype(np.float32) + \
                                         (parse_array == label_map["pants"]).astype(np.float32)
         parser_mask_fixed += parser_mask_fixed_lower_cloth
+        
         parser_mask_changeable += np.logical_and(parse_array, np.logical_not(parser_mask_fixed))
     elif category == 'lower_body':
-        parse_mask = (parse_array == 6).astype(np.float32) + \
-                     (parse_array == 12).astype(np.float32) + \
-                     (parse_array == 13).astype(np.float32) + \
-                     (parse_array == 5).astype(np.float32)
+        parse_mask = (parse_array == label_map["pants"]).astype(np.float32) + \
+                     (parse_array == label_map["left_leg"]).astype(np.float32) + \
+                     (parse_array == label_map["right_leg"]).astype(np.float32) + \
+                     (parse_array == label_map["skirt"]).astype(np.float32)
+                     
         parser_mask_fixed += (parse_array == label_map["upper_clothes"]).astype(np.float32) + \
-                             (parse_array == 14).astype(np.float32) + \
-                             (parse_array == 15).astype(np.float32)
+                             (parse_array == label_map["left_arm"]).astype(np.float32) + \
+                             (parse_array == label_map["right_arm"]).astype(np.float32)
         parser_mask_changeable += np.logical_and(parse_array, np.logical_not(parser_mask_fixed))
+    elif category == 'dresses_w_shoe':
+        parse_mask = (parse_array == label_map["dress"]).astype(np.float32) + \
+                    (parse_array == label_map["upper_clothes"]).astype(np.float32) + \
+                    (parse_array == label_map["skirt"]).astype(np.float32) + \
+                    (parse_array == label_map["pants"]).astype(np.float32) + \
+                    (parse_array == label_map["left_shoe"]).astype(np.float32) + \
+                    (parse_array == label_map["right_shoe"]).astype(np.float32) 
+        
+        # Adjust parser_mask_fixed and parser_mask_changeable as needed based on the new category's requirements
+        # For simplicity, assuming no change is needed for the fixed and changeable masks beyond what's included in parse_mask
+        pass  # No additional adjustments in this example
+    
+    elif category == 'whole_body_except_head':
+        parse_mask = (parse_array == label_map["dress"]).astype(np.float32) + \
+                    (parse_array == label_map["upper_clothes"]).astype(np.float32) + \
+                    (parse_array == label_map["belt"]).astype(np.float32) + \
+                    (parse_array == label_map["skirt"]).astype(np.float32) + \
+                    (parse_array == label_map["pants"]).astype(np.float32) + \
+                    (parse_array == label_map["left_leg"]).astype(np.float32) + \
+                    (parse_array == label_map["right_leg"]).astype(np.float32) + \
+                    (parse_array == label_map["left_arm"]).astype(np.float32) + \
+                    (parse_array == label_map["right_arm"]).astype(np.float32) + \
+                    (parse_array == label_map["bag"]).astype(np.float32) + \
+                    (parse_array == label_map["left_shoe"]).astype(np.float32) + \
+                    (parse_array == label_map["right_shoe"]).astype(np.float32) 
     else:
         raise NotImplementedError
+
+    # if section_ids is not None:
+    #     parse_mask = None
+    #     for id in section_ids:
+    #         parse_mask += (parse_array == id).astype(np.float32)
+        
+    #     #parser_mask_changeable += np.logical_and(parse_array, np.logical_not(parser_mask_fixed))
 
     # Load pose points
     pose_data = keypoint["pose_keypoints_2d"]
@@ -124,7 +160,11 @@ def get_mask_location(
     im_arms_right = Image.new('L', (width, height))
     arms_draw_left = ImageDraw.Draw(im_arms_left)
     arms_draw_right = ImageDraw.Draw(im_arms_right)
-    if category == 'dresses' or category == 'upper_body':
+    
+    upper_categories = ["dresses","upper_body", "dresses_w_shoe", "whole_body_except_head"]
+    
+    if category in upper_categories:
+    # if category == 'dresses' or category == 'upper_body':
         shoulder_right = np.multiply(tuple(pose_data[2][:2]), height / 512.0)
         shoulder_left = np.multiply(tuple(pose_data[5][:2]), height / 512.0)
         elbow_right = np.multiply(tuple(pose_data[3][:2]), height / 512.0)
@@ -157,14 +197,19 @@ def get_mask_location(
     parser_mask_fixed   = np.logical_or(parser_mask_fixed, parse_head)
     dilate_kernel       = np.ones((dilate_margin*2+1, dilate_margin*2+1), np.uint16)
     parse_mask          = cv2.dilate(parse_mask, dilate_kernel, iterations=5)
-    
-    if category == 'dresses' or category == 'upper_body':
-        neck_mask = (parse_array == 18).astype(np.float32)
-        neck_mask = cv2.dilate(neck_mask, dilate_kernel, iterations=1)
-        neck_mask = np.logical_and(neck_mask, np.logical_not(parse_head))
-        parse_mask = np.logical_or(parse_mask, neck_mask)
-        arm_mask = cv2.dilate(np.logical_or(im_arms_left, im_arms_right).astype('float32'), dilate_kernel, iterations=4)
-        parse_mask += np.logical_or(parse_mask, arm_mask)
+
+    # if category == 'dresses' or category == 'upper_body':
+    if category in upper_categories:
+        neck_mask   = (parse_array == 18).astype(np.float32)
+        neck_mask   = cv2.dilate(neck_mask, dilate_kernel, iterations=1)
+        neck_mask   = np.logical_and(neck_mask, np.logical_not(parse_head))
+        parse_mask  = np.logical_or(parse_mask, neck_mask)
+        arm_mask    = cv2.dilate(
+            np.logical_or(im_arms_left, im_arms_right).astype('float32')
+            , dilate_kernel
+            , iterations = 4
+        )
+        parse_mask  += np.logical_or(parse_mask, arm_mask)
 
     parse_mask = np.logical_and(parser_mask_changeable, np.logical_not(parse_mask))
 
